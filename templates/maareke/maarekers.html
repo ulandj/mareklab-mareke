@@ -1,0 +1,221 @@
+{% extends 'base/base.html' %}
+{% load user_filters %}
+
+
+{% block content %}
+    <div class="maareke-page">
+
+    <div class="maareke-page-head">
+
+        <div class="page-head-title clearfix">
+            <p>Maarekers / <span>Tamada</span></p>
+
+            <ul class="mrk-head-fl-right">
+
+                <li class="choose-maareker">
+
+                    <select name="" id="">
+                        <option value="">Tamada</option>
+                        <option value="">Musician</option>
+                        <option value="">Cafe & Restaurant</option>
+                    </select>
+
+                </li>
+
+                <li class="page-head-search">
+                    <input type="text" placeholder="Search by name..."/>
+                    <button><i class="icon-search2"></i></button>
+                </li>
+
+            </ul>
+            <!-- End Mrk Head Fl Right -->
+
+        </div>
+        <!-- End Page-head-Title -->
+
+        <div class="page-head-opt clearfix">
+
+            <div class="maareke-page-row">
+
+                <select name="" id="page-region">
+                    <option value="0">Select Region</option>
+                    <option value="1">Kyrgyzstan</option>
+                    <option value="2">Kazakstan</option>
+                </select>
+
+            </div>
+            <!-- End Maareke Page Row -->
+
+            <div class="maareke-page-row">
+
+                <select name="" id="page-city">
+                    <option value="0">Select City</option>
+                    <option value="1">Kyrgyzstan</option>
+                    <option value="2">Kazakstan</option>
+                </select>
+
+            </div>
+            <!-- End Maareke Page Row -->
+
+            <div class="maareke-page-row page-option">
+
+                <select name="" id="page-option">
+                    <option value="0">All</option>
+                    <option value="1">Rated</option>
+                    <option value="2">Popular</option>
+                </select>
+
+            </div>
+            <!-- End Maareke Page Row -->
+
+            <div class="maareke-page-row page-small">
+
+                <ul>
+                    <li>
+                        <select name="" id="page-age-min">
+                            <option value="0"> Min. Age</option>
+                            <option value="1">10</option>
+                            <option value="1">11</option>
+                            <option value="1">12</option>
+                            <option value="1">13</option>
+                            <option value="1">14</option>
+                            <option value="1">15</option>
+                            <option value="1">16</option>
+                            <option value="1">17</option>
+                            <option value="1">18</option>
+                            <option value="1">19</option>
+                            <option value="1">20</option>
+                            <option value="1">21</option>
+                        </select>
+                    </li>
+                    <li>
+                        <p>~</p>
+                    </li>
+                    <li>
+                        <select name="" id="page-age-max">
+                            <option value="0"> Max. Age</option>
+                            <option value="1">22</option>
+                            <option value="1">23</option>
+                            <option value="1">24</option>
+                            <option value="1">25</option>
+                            <option value="1">26</option>
+                            <option value="1">27</option>
+                            <option value="1">28</option>
+                            <option value="1">29</option>
+                            <option value="1">30</option>
+                        </select>
+                    </li>
+                </ul>
+
+            </div>
+            <!-- End Maareke Page Row -->
+
+            <div class="maareke-page-row page-gender">
+
+                <select name="" id="page-gender">
+                    <option value="0">Gender</option>
+                    <option value="1">Male</option>
+                    <option value="2">Female</option>
+                </select>
+
+            </div>
+            <!-- End Maareke Page Row -->
+
+            <div class="maareke-page-row page-small page-price">
+
+                <ul>
+                    <li>
+                        <select name="" id="page-price-min">
+                            <option value="0"> Min. Price</option>
+                            <option value="1">10</option>
+                            <option value="1">11</option>
+                            <option value="1">12</option>
+                            <option value="1">13</option>
+                            <option value="1">14</option>
+                            <option value="1">15</option>
+                            <option value="1">16</option>
+                            <option value="1">17</option>
+                            <option value="1">18</option>
+                            <option value="1">19</option>
+                            <option value="1">20</option>
+                            <option value="1">21</option>
+                        </select>
+                    </li>
+                    <li>
+                        <p>~</p>
+                    </li>
+                    <li>
+                        <select name="" id="page-price-max">
+                            <option value="0"> Max. Price</option>
+                            <option value="1">22</option>
+                            <option value="1">23</option>
+                            <option value="1">24</option>
+                            <option value="1">25</option>
+                            <option value="1">26</option>
+                            <option value="1">27</option>
+                            <option value="1">28</option>
+                            <option value="1">29</option>
+                            <option value="1">30</option>
+                        </select>
+                    </li>
+                    <li>
+                        <select name="" id="page-price">
+                            <option value="0">Price option</option>
+                            <option value="1">Dollar</option>
+                            <option value="1">Som</option>
+                            <option value="1">24</option>
+                        </select>
+                    </li>
+                </ul>
+
+            </div>
+            <!-- End Maareke Page Row -->
+
+        </div>
+        <!-- End Page Head Opt -->
+
+    </div>
+    <!-- End Maareke Page Head -->
+
+    <div class="maareke-page-cont clearfix">
+
+        {% for page in pages %}
+            <div class="crt-mrk-row">
+
+                <a href="/user/{{ page.id }}">
+                    <div class="crt-page-avatar">
+                        <img src="/static/img/martin-big.png" alt=""/>
+                    </div>
+
+                    <div class="page-info">
+
+                        <div class="crt-page-name">
+                            <p>{{ page.first_name }}</p>
+                        </div>
+
+                        <div class="mrk-category">
+                            <p>Category / {{ page.page_type|page_type_title }}</p>
+                        </div>
+
+                        <div class="mrk-rating">
+
+                        </div>
+
+                        <div class="mrk-place">
+                            <p>{{ page.country|get_country_name }}, {{ page.region|get_region_name }}</p>
+                        </div>
+
+                    </div>
+                    <!-- End Frnd Info -->
+                </a>
+
+            </div>
+            <!-- End Crt Mrk Row -->
+        {% endfor %}
+
+    </div>
+    <!-- End Maareke Page Cont Right -->
+
+    </div>
+    <!-- End mrkders -->
+{% endblock %}

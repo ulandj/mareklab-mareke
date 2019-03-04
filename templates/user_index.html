@@ -1,0 +1,586 @@
+{% extends 'base/base.html' %}
+
+{% block js_script %}
+    <script>
+        $(document).ready(function () {
+            $('#add_friend').click(function () {
+                $(this).hide();
+                $('.ajax_load').show();
+                $.ajax({
+                    url: "/add_friend/",
+                    type: "POST",
+                    data: {'user': {{page_owner.id}}, 'csrfmiddlewaretoken': '{{csrf_token}}'},
+                    success: function (data, textStatus, jqXHR) {
+                        if (data.success) {
+                            $(this).hide();
+                            $('.ajax_load').hide();
+                            $('#add_friend_sent').show();
+                        } else {
+                            $(this).show();
+                            $('.ajax_load').hide();
+                            showErrorToast(data.message);
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        $('#add_friend').show();
+                        $('.ajax_load').hide();
+                        showErrorToast('Error when sending data!');
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
+
+
+
+{% block content %}
+    <div class="user-wrapper">
+
+        <div class="user-cont clearfix">
+            <div class="cover">
+                <img src="/static/img/cover.png" alt="cover"/>
+            </div>
+
+            <div class="update-inf">
+                {% if user.id == page_owner.id %}
+                    <a href="#" class="update">Update info</a>
+                {% elif owner.friend_request == '' %}
+                    <a href="#" class="update" id="add_friend">Add Friend</a>
+                    <div style="display: none;" class="ajax_load"></div>
+                    <a class="update" style="display: none" id="add_friend_sent">Friend request Sent</a>
+                {% elif owner.friend_request == 0 %}
+                    <a class="update">Friend request Sent</a>
+                {% elif owner.friend_request == 1 %}
+                    <a class="update">You are friends</a>
+                {% elif owner.friend_request == 2 %}
+                    <a class="update">Your request not accepted</a>
+                {% endif %}
+            </div>
+
+            <div class="change-cover">
+                {% if user.id == page_owner.id %}
+                    <a href="#" class="update">Change cover</a>
+                {% endif %}
+            </div>
+
+            <div class="user-avatar-big">
+                <a href="#">
+                    <img src="/static/img/user-big.png" alt="avatar"/>
+
+                    <p>{{ page_owner.first_name }} {{ page_owner.last_name }}</p>
+                </a>
+            </div>
+
+            <ul class="cover-menu">
+                <li><a href="#">Timeline</a>
+                </li>
+                <li><a href="#">About</a>
+                </li>
+                <li><a href="#">Friends</a>
+                </li>
+                <li><a href="#">Photos</a>
+                </li>
+                <li><a href="#">Videos</a>
+                </li>
+                <li><a href="#">Maareke</a>
+                </li>
+            </ul>
+
+        </div>
+        <!-- User Cont -->
+
+    </div>
+    <!-- End User Wraper -->
+
+
+    <div class="center-wrapper" ng-controller="ScrollCtrl">
+
+    {% if user.id == page_owner.id %}
+        <div class="global-menu clearfix" id="share_main">
+            <form id="share_text_form" action="/share_text/" method="post">
+                {% csrf_token %}
+                <div class="gbm-img">
+                    <img src="/static/img/martin.png" alt=""/>
+                </div>
+
+                <div class="textarea clearfix">
+                    <textarea name="share_text" class="text_autosize" placeholder="Share whats new..."></textarea>
+                </div>
+
+                <div class="add">
+
+                    <ul class="gbm-attach">
+                        <li>
+                            <a href="#" class="clearfix" onclick="javascript: hide_share_main('photo')">
+                                <i class="icon-camera"></i>
+
+                                <p>Photo</p>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="clearfix" onclick="javascript: hide_share_main('video')">
+                                <i class="icon-play"></i>
+
+                                <p>Video</p>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="clearfix" onclick="javascript: hide_share_main('event')">
+                                <i class="icon-calendar2"></i>
+
+                                <p>Event</p>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="btn">
+                        <input type="submit" value="Share"/>
+                    </div>
+
+                    <div class="share-with">
+                        <select name="share_public">
+                            <option value="0" selected>Public</option>
+                            <option value="1">Friends</option>
+                        </select>
+                    </div>
+
+                </div>
+                <!-- End Add -->
+            </form>
+        </div>
+        <!-- End Global Menu -->
+
+        <div class="upload-row" id="share_photo" style="display: none">
+            <form id="share_photo_form" action="/share_photo/" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="upload-content clearfix">
+                    <div class="attach">
+                        <i class="icon-camera"></i>
+                    </div>
+                    <div class="textarea clearfix">
+                        <textarea name="share_photo_desc" id="share_photo_desc" class="text_autosize"
+                                  placeholder="Write description"></textarea>
+                    </div>
+                    <!-- End Text Area -->
+
+                    <div class="up-area">
+
+                        <a href="#" id="click_upload">
+                            <img id="previewHolder" src="/static/img/photo-upl-bg.png" alt=""/>
+
+                            <div class="up-cont">
+                                <div class="icon-img">
+                                    <i class="icon-camera"></i>
+                                </div>
+                                <div class="photo-desc">
+                                    <p>Click to upload image</p>
+                                </div>
+                            </div>
+                        </a>
+
+                        <div class="load" style="display: none">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                    <input type="file" name="filePhoto" value="" id="filePhoto" style="display: none">
+
+                    <div class="share-with">
+                        <select name="share_public">
+                            <option value="0" selected>Public</option>
+                            <option value="1">Friends</option>
+                        </select>
+                    </div>
+
+                    <div class="upload-btn ">
+                        <input type="submit" value="Share">
+                        <input type="button" value="Cancel" onclick="javascript: show_share_main('photo')">
+                    </div>
+
+
+                </div>
+                <!-- End Upload Content -->
+            </form>
+        </div>
+
+            <div class="upload-row" id="share_video" style="display: none">
+        <div class="upload-content clearfix">
+            <form id="share_video_form" action="/share_video/" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="attach">
+                    <i class="icon-play"></i>
+                </div>
+                <div class="add-text-area clearfix">
+                    <textarea name="share_video_desc" id="share_video_desc" class="text_autosize"
+                              placeholder="Write description..."></textarea>
+                </div>
+                <!-- End Text Area -->
+
+                <input type="file" name="video_file" id="share_video_file">
+
+                <div class="progress clearfix">
+                    <div class="bar"></div>
+                    <div class="percent">0%</div>
+                </div>
+
+                <div class="share-with">
+                    <select name="share_public">
+                        <option value="0" selected>Public</option>
+                        <option value="1">Friends</option>
+                    </select>
+                </div>
+
+                <div class="upload-btn ">
+                    <input type="submit" value="Share">
+                    <input type="button" value="Cancel" onclick="javascript: show_share_main('video')">
+
+                    <div style="display: none; margin-right: 20px;" class="ajax_load"></div>
+                </div>
+            </form>
+        </div>
+        <!-- End Upload Content -->
+    </div>
+
+        <div class="upload-row" id="share_event" style="display: none">
+            <div class="upload-content clearfix">
+                <div class="attach">
+                    <i class="icon-calendar2"></i>
+                </div>
+
+                <div class="event-image clearfix">
+                    <img src="/static/img/upload-bg.png" alt=""/>
+
+                    <div class="change-event-cover">
+                        <a href="#" role="button">Change theme</a>
+                    </div>
+                </div>
+
+                <div class="event-input">
+                    <input type="text" placeholder="Event title"/>
+                </div>
+
+                <div class="add-text-area clearfix">
+                    <textarea name="" placeholder="Event description"></textarea>
+                </div>
+                <!-- End Text Area -->
+
+                <div class="event-date clearfix">
+                    <div class="event-day">
+                        <input type="text"/>
+
+                        <div class="day-icn"><i class="icon-clock"></i>
+                        </div>
+                    </div>
+                    <div class="event-time">
+                        <input type="text"/>
+                    </div>
+                    <div class="end-time" role="button"><a href="#">Add end time</a>
+                    </div>
+                </div>
+                <!-- End event date-->
+
+                <div class="event-input">
+                    <input type="text" placeholder="Location"/>
+                </div>
+
+                <div class="share-with">
+                    <select name="share_public">
+                        <option value="0" selected>Public</option>
+                        <option value="1">Friends</option>
+                    </select>
+                </div>
+
+                <div class="upload-btn ">
+                    <button>Share</button>
+                    <button onclick="javascript: show_share_main('event')">Cancel</button>
+                </div>
+            </div>
+            <!-- End Upload Content -->
+        </div>
+    {% endif %}
+
+
+    <div infinite-scroll='reddit.nextPage()' infinite-scroll-disabled='reddit.busy' infinite-scroll-distance='1'>
+        <div class="main-content" ng-repeat="item in reddit.items | orderObjectBy:'id':true">
+
+            <div class="poster clearfix">
+                <div class="poster-img">
+                    <a href="#">
+                        <img src="/static/img/maggie.png" alt=""/>
+                    </a>
+                </div>
+                <div class="poster-name">
+                    <p><a href="#">{[{ item.author }]}</a>
+                    </p>
+
+                    <p class="time">Shared friends - {[{ item.datetime }]}</p>
+                </div>
+                <div class="option">
+                    <a href="#"><i class="icon-arrow-down8"></i></a>
+                </div>
+            </div>
+            <!-- End poster-->
+
+            <div class="poster-desc">
+                <p>{[{ item.desc }]}</p>
+            </div>
+            <!-- End Poster desc -->
+
+            <div class="post-cont" ng-if="item.object_type == 4">
+                <video videojs file-name="item.url"
+                       class="video-js vjs-default-skin vjs-controls-enabled vjs-has-started vjs-paused vjs-user-inactive">
+                </video>
+            </div>
+
+            <div class="post-cont" ng-if="item.url != '' && item.object_type != 4">
+                <img src="http://maareke-image.s3.amazonaws.com/500/{[{ item.url }]}">
+            </div>
+
+            <div class="post-event clearfix">
+
+                <ul class="post-action">
+
+                    <li class="like">
+                        <p class="icon" ng-click="applause({{ user.id }}, item)" style="cursor: pointer"><i
+                                class="icon-thumbsup"></i></p>
+
+                        <p class="count"><a href="#">{[{ item.applause }]}</a></p>
+                    </li>
+                    <!-- End like -->
+
+                    <li class="share">
+                        <p class="icon"><a href="#"><i class="icon-share2"></i></a>
+                        </p>
+
+                        <p class="count"><a href="#">{[{ item.share }]}</a>
+                        </p>
+                    </li>
+                    <!-- End Share -->
+
+                </ul>
+                <!-- End Post Action -->
+
+                <ul class="post-owner">
+                    <li>
+                        <a href="">
+                            <img src="/static/img/jeniffer.png" alt=""/>
+                        </a>
+                    </li>
+                    <li><i class="icon-heart4"></i>
+                    </li>
+                    <li>
+                        <a href="">
+                            <img src="/static/img/obama.png" alt=""/>
+                        </a>
+                    </li>
+                </ul>
+                <!-- End Post Owner -->
+
+            </div>
+            <!-- Post Event -->
+
+            <div class="comment">
+
+                <div class="com-title">
+                    <p><a href="#"> Comments <span>(10)</span></a>
+                    </p>
+                </div>
+
+                <div class="com-owner clearfix" ng-repeat='comment in getComments(item.id)'
+                     ng-mouseenter="hover(comment)" ng-mouseleave="hover(comment)" ng-init="showDelete=false">
+
+                    <div class="com-avatar ">
+                        <a href="#">
+                            <img src="/static/img/jeniffer.png" alt=""/>
+
+                            <p>{[{ comment.author }]}
+                                <span>{[{ comment.datetime }]}</span>
+                            </p>
+                        </a>
+                    </div>
+
+                    <div class="com-reply " ng-show="comment.showDelete">
+                        <a style="cursor: pointer" ng-click="deleteComment(comment, item)">
+                            <div class="close"><i class="icon-cross"></i>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="com-text ">
+                        <p>{[{ comment.text }]}</p>
+                    </div>
+
+                </div>
+                <!-- End Com Owner -->
+
+                <div class="com-textarea">
+                    <textarea name="" placeholder="Write your comment" ng-keypress="addComment($event, item)"
+                              ng-model="item.comment"></textarea>
+                </div>
+
+
+            </div>
+            <!-- End Comment -->
+
+        </div>
+        <!-- End Main Content -->
+    </div>
+
+    </div>
+    <!-- End Center Wrapper -->
+
+    <div class="right-wrapper">
+
+        <div class="right-cont clearfix">
+
+            <div class="row">
+
+                <div class="row-title clearfix">
+                    <h4><a href="#">About</a>
+                    </h4>
+
+                    <p><a href="#">See more</a>
+                    </p>
+                </div>
+                <!-- End Row Title-->
+
+                <ul class="about">
+                    <li><a href="#"><i
+                            class="icon-location2"></i><span>From</span> {{ owner.country }}, {{ owner.region }}</a>
+                    </li>
+                    <li><a href="#"><i class="icon-house"></i><span>Lives</span> {{ owner.country }}, {{ owner.region }}
+                    </a>
+                    </li>
+                    <li><a href="#"><i class="icon-graduation"></i><span>Studied at</span> Manas Kyrgyz Turkish
+                        Internation Univercity</a>
+                    </li>
+                    <li><a href="#"><i class="icon-briefcase2"></i><span>Work</span> Freelance web developer</a>
+                    </li>
+                    <li><a href="#"><i
+                            class="icon-heart"></i><span>Martial Status</span> {{ page_owner.marital_status }}</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- End row -->
+
+            <div class="row">
+
+                <div class="row-title clearfix">
+                    <h4><a href="#">Friends</a>
+                    </h4>
+
+                    <p><a href="#">See more</a>
+                    </p>
+                </div>
+                <!-- End Row Title-->
+
+                <div class="a-left"><a href="#"><i class="icon-arrow-left8"></i></a>
+                </div>
+                <div class="a-right"><a href="#"><i class="icon-arrow-right8"></i></a>
+                </div>
+
+                <ul class="pmyk-list">
+                    <li>
+                        <a href="#">
+                            <img src="/static/img/jeniffer.png" alt="">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <img src="/static/img/maggie.png" alt="">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <img src="/static/img/martin.png" alt="">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <img src="/static/img/martin.png" alt="">
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <img src="/static/img/obama.png" alt="">
+                        </a>
+                    </li>
+                </ul>
+                <!-- End Pmyk-list-->
+
+            </div>
+            <!-- End row -->
+
+            <div class="row row-video">
+
+                <div class="row-title clearfix">
+                    <h4><a href="#">Videos</a>
+                    </h4>
+
+                    <p><a href="#">See more</a>
+                    </p>
+                </div>
+                <!-- End Row Title-->
+
+                <div class="a-left"><a href="#"><i class="icon-arrow-left8"></i></a>
+                </div>
+                <div class="a-right"><a href="#"><i class="icon-arrow-right8"></i></a>
+                </div>
+
+                <div class="row-cont">
+                    <a href="#">
+                        <img src="/static/img/video.png" alt="">
+                    </a>
+                </div>
+
+                <div class="row-desc">
+                    <p class="row-desc-title"><a href="#">Incridble Wedding: Kyrgyzstan</a>
+                    </p>
+
+                    <p><a href="#">by Jumamidin Tashaliev <br> 527,850 views</a>
+                    </p>
+                </div>
+
+            </div>
+            <!-- End row -->
+
+            <div class="row row-video">
+
+                <div class="row-title clearfix">
+                    <h4><a href="#">Photos</a>
+                    </h4>
+
+                    <p><a href="#">See more</a>
+                    </p>
+                </div>
+                <!-- End Row Title-->
+
+                <div class="a-left"><a href="#"><i class="icon-arrow-left8"></i></a>
+                </div>
+                <div class="a-right"><a href="#"><i class="icon-arrow-right8"></i></a>
+                </div>
+
+                <div class="row-cont">
+                    <a href="#">
+                        <img src="/static/img/photo.png" alt="">
+                    </a>
+                </div>
+
+                <div class="row-desc">
+                    <p class="row-desc-title"><a href="#">Incridble Wedding: Kyrgyzstan</a>
+                    </p>
+
+                    <p><a href="#">by Jumamidin Tashaliev <br> 527,850 views</a>
+                    </p>
+                </div>
+
+            </div>
+            <!-- End row -->
+
+
+        </div>
+        <!-- End Right Cont-->
+
+    </div>
+    <!-- End Right Wrapper -->
+{% endblock %}

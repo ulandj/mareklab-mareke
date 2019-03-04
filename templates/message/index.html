@@ -1,0 +1,357 @@
+{% extends 'base/base.html' %}
+{% load user_filters %}
+
+{% block js_script %}
+    <script type="text/javascript">
+    $(document).ready(function () {
+        window.setInterval(updateUserStatuses, 5000);
+        $('.message-cont').animate({ scrollTop: $('.message-cont')[0].scrollHeight}, 1000);
+
+        $('#message_text').keydown(function (event) {
+            if (event.keyCode == 13 && !event.shiftKey) {
+                event.preventDefault();
+                owner = $('.msg-owner').attr('owner');
+                message = $('#message_text').val();
+
+                sendMessage(parseInt(owner), message);
+
+                $('#message_text').val('');
+            }
+
+        });
+        $('#message_text').keyup(function (event) {
+            if (event.keyCode != 13) {
+                typing_command = {
+                    "command": "typing",
+                    "token": window.user_socket_token,
+                    "to": parseInt($('.msg-owner').attr('owner'))
+                };
+
+                sendCommand(typing_command);
+            }
+        });
+
+
+        $('.frnd-name').click(function () {
+            user_id = $(this).attr('msg-user');
+
+            $('.msg-owner').find('p').html($(this).find('p').html());
+            $('.msg-owner').attr('owner', user_id);
+            $('.msg-text').html('<div style="margin: 40% auto;" class="ajax_load_large"></div>');
+
+            $.ajax({
+                url: "/get_messages/",
+                type: "POST",
+                data: {'user': user_id, 'csrfmiddlewaretoken': '{{csrf_token}}'},
+                success: function (data, textStatus, jqXHR) {
+                    if (data.success) {
+                        $('.msg-text').html('');
+
+                        $('.msg-frnd-avatar').children('.status').each(function (index) {
+                            curr_user = $(this).attr('data-user');
+                            if (parseInt(curr_user) == parseInt(user_id)) {
+                                if ($(this).children().length > 0) {
+                                    header_total_message = $('#header_total_message').find('p').html();
+                                    total_message = $('.msg-con').html();
+                                    user_message_count = $(this).find('p').html();
+
+                                    header_total_message = isNaN(parseInt(header_total_message)) ? 0 : parseInt(header_total_message);
+                                    total_message = isNaN(parseInt(total_message)) ? 0 : parseInt(total_message);
+                                    user_message_count = isNaN(parseInt(user_message_count)) ? 0 : parseInt(user_message_count);
+
+                                    if ((total_message > 0) && (user_message_count > 0)) {
+                                        if ((total_message - user_message_count) <= 0) {
+                                            $('.msg-con').remove();
+                                        } else {
+                                            $('.msg-con').html(total_message - user_message_count);
+                                        }
+                                    }
+
+                                    if ((header_total_message > 0) && (user_message_count > 0)) {
+                                        if ((total_message - user_message_count) <= 0) {
+                                            $('#header_total_message').find('p').remove();
+                                        } else {
+                                            $('#header_total_message').find('p').html(total_message - user_message_count);
+                                        }
+
+                                    }
+
+
+                                    $(this).find('p').html('');
+                                }
+                            }
+                        });
+
+                        for (i = 0; i < data.messages.length; i++) {
+                            if ($('.msg-text').find('.msg-main-row').length != 0) {
+                                last_child = $('.msg-text').children('.msg-main-row').last();
+
+                                last_user = last_child.attr('owner');
+
+                                if (parseInt(last_user) == parseInt(data.messages[i]['id'])) {
+                                    last_child.find('.msg-main-text').append('<p>' + data.messages[i]['text'] + '</p>');
+                                } else {
+                                    $clone = $('#message_row').clone();
+
+                                    $clone.removeAttr('style');
+                                    $clone.removeAttr('id');
+
+                                    $clone.attr('owner', data.messages[i]['id'])
+
+                                    $clone.find('.msg-user-name').find('p').html(data.messages[i]['from_name']);
+                                    $clone.find('.cont-time').html(data.messages[i]['create_date']);
+                                    $clone.find('.msg-main-text').find('p').html(data.messages[i]['text']);
+
+                                    $('.msg-text').append($clone);
+                                }
+                            } else {
+                                $clone = $('#message_row').clone();
+
+                                $clone.removeAttr('style');
+                                $clone.removeAttr('id');
+
+                                $clone.attr('owner', data.messages[i]['id']);
+
+                                $clone.find('.msg-user-name').find('p').html(data.messages[i]['from_name']);
+                                $clone.find('.cont-time').html(data.messages[i]['create_date']);
+                                $clone.find('.msg-main-text').find('p').html(data.messages[i]['text']);
+
+                                $('.msg-text').append($clone);
+                            }
+                        }
+                    } else {
+                        $('.ajax_load_large').hide();
+                        showErrorToast(data.message);
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    $('.ajax_load_large').hide();
+                    showErrorToast('Error connecting to server!');
+                }
+            });
+        });
+
+
+        default_user_id = $('.msg-owner').attr('owner');
+        $('.msg-text').html('<div style="margin: 40% auto;" class="ajax_load_large"></div>');
+
+        $.ajax({
+            url: "/get_messages/",
+            type: "POST",
+            data: {'user': default_user_id, 'csrfmiddlewaretoken': '{{csrf_token}}'},
+            success: function (data, textStatus, jqXHR) {
+                if (data.success) {
+                    $('.msg-text').html('');
+
+                    for (i = 0; i < data.messages.length; i++) {
+                        if ($('.msg-text').find('.msg-main-row').length != 0) {
+                            last_child = $('.msg-text').children('.msg-main-row').last();
+
+                            last_user = last_child.attr('owner');
+
+                            if (parseInt(last_user) == parseInt(data.messages[i]['id'])) {
+                                last_child.find('.msg-main-text').append('<p>' + data.messages[i]['text'] + '</p>');
+                            } else {
+                                $clone = $('#message_row').clone();
+
+                                $clone.removeAttr('style');
+                                $clone.removeAttr('id');
+
+                                $clone.attr('owner', data.messages[i]['id']);
+
+                                $clone.find('.msg-user-name').find('p').html(data.messages[i]['from_name']);
+                                $clone.find('.cont-time').html(data.messages[i]['create_date']);
+                                $clone.find('.msg-main-text').find('p').html(data.messages[i]['text']);
+
+                                $('.msg-text').append($clone);
+                            }
+                        } else {
+                            $clone = $('#message_row').clone();
+
+                            $clone.removeAttr('style');
+                            $clone.removeAttr('id');
+
+                            $clone.attr('owner', data.messages[i]['id']);
+
+                            $clone.find('.msg-user-name').find('p').html(data.messages[i]['from_name']);
+                            $clone.find('.cont-time').html(data.messages[i]['create_date']);
+                            $clone.find('.msg-main-text').find('p').html(data.messages[i]['text']);
+
+                            $('.msg-text').append($clone);
+                        }
+                    }
+                } else {
+                    $('.ajax_load_large').hide();
+                    showErrorToast(data.message);
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $('.ajax_load_large').hide();
+                showErrorToast('Error connecting to server!');
+            }
+        });
+
+
+    });
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="message-wrapper">
+
+        <div class="msg-cont-wrapper">
+
+            <div class="message-left">
+
+                <div class="message-left-header">
+
+                    <div class="msg-owner" owner="{{ from_user.id }}">
+                        <img src="/static/img/jeniffer.png" alt=""/>
+
+                        <p>{{ from_user.user_name }}</p>
+                    </div>
+
+                    <div class="typing" id="typing">
+                    </div>
+
+                    <div class="archive">
+                        <a href="#">
+                            <p>Archive <i class="icon-arrow-down8"></i>
+                            </p>
+                        </a>
+                    </div>
+                </div>
+                <!-- End Message Left Header -->
+
+                <div class="message-cont">
+
+                    <div class="msg-text">
+                    </div>
+                    <!-- Msg Text -->
+
+                </div>
+                <!-- End Message Cont -->
+
+                <div class="msg-menu clearfix">
+                    <div class="msg-area">
+                        <textarea id="message_text" placeholder="Write your message..."></textarea>
+                        <a href="#"><i class="icon-smiley"></i></a>
+                    </div>
+                    <ul class="msg-attach">
+                        <li><a onclick="javascript: sendCommand();"><i class="icon-attachment"></i> Add File</a>
+                        </li>
+                        <li><a href="#" id="add_photo"><i class="icon-camera4"></i> Add Photo</a>
+                        </li>
+                    </ul>
+
+                    <div class="prss-entr">
+                        <p>Press enter to sent</p>
+                        <input type="checkbox" checked/>
+                    </div>
+                </div>
+
+            </div>
+            <!-- End Message Right -->
+
+            <div class="message-right">
+
+                <div class="message-header">
+                    <p class="msg-title">Message</p>
+
+                    {% with user.id|not_read_message_count as message_count %}
+                        {% if message_count > 0 %}
+                            <p class="msg-con">{{ message_count }}</p>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <!--End Message header -->
+
+                <div class="msg-search">
+                    <input type="text" placeholder="Search your Friends"/>
+                    <a href="#"><i class="icon-search2"></i></a>
+                </div>
+                <!-- End msg-search -->
+
+                <div class="msg-frnd">
+
+                    {% for msg_user in users %}
+                        <div class="msg-row clearfix">
+
+                            <div class="msg-frnd-name clearfix">
+
+                                <div class="frnd-name" msg-user="{{ msg_user.id }}">
+                                    <p>{{ msg_user.user_name }}
+                                    </p>
+                                </div>
+
+                                <div class="msg-time">
+                                    <div class="icon">
+                                        <i class="icon-clock4"></i>
+                                    </div>
+                                    <div class="time">
+                                        <p>{{ msg_user.last_message_datetime }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Msg Frnd Name -->
+
+                            <div class="msg-frnd-avatar">
+                                <a href="#">
+                                    <img src="/static/img/obama.png" alt="name"/>
+                                </a>
+
+                                <div data-user="{{ msg_user.id }}"
+                                     class="status {% if msg_user.is_offline %}ofline{% else %}online{% endif %}">
+                                    {% if msg_user.message_count > 0 %}
+                                        <p>{{ msg_user.message_count }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <!-- End Msg frnd Avatar -->
+
+                            <div class="msg-shrt">
+                                <p>{{ msg_user.last_message|truncatechars:30 }}</p>
+                            </div>
+
+                        </div>
+                        <!-- Msg Row -->
+                    {% endfor %}
+
+                </div>
+                <!-- Msg Frnd -->
+
+            </div>
+            <!-- End Message Left -->
+
+        </div>
+
+
+    </div>
+    <!-- End Message Wraaper -->
+
+
+
+    <div class="msg-main-row clearfix" id="message_row" style="display: none">
+
+        <div class="msg-user">
+            <a href="#">
+                <img src="/static/img/jeniffer.png" alt=""/>
+
+                <div class="msg-user-name">
+                    <p>name</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="msg-cont-time ">
+            <div class="icon-time"><i class="icon-clock4"></i>
+            </div>
+            <div class="cont-time">create_date</div>
+        </div>
+
+        <div class="msg-main-text">
+            <p>text</p>
+        </div>
+
+    </div>
+{% endblock %}

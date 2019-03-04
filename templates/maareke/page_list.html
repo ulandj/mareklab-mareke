@@ -1,0 +1,3 @@
+{% for page in pages %}
+    <a href="/page_login/{{ page.id }}"><i class="icon-star"></i> {{ page.first_name }} {{ page.last_name|default_if_none:'' }}</a>
+{% endfor %}

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Index</title>
+    <link rel="stylesheet" href="/static/css/main-style.css">
+    <link rel="stylesheet" href="/static/css/reset.css">
+    <link rel="stylesheet" href="/static/css/icomoon.css">
+
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.backstretch.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $.backstretch("/static/img/bg-home.png");
+        });
+    </script>
+</head>
+
+<body>
+
+<div class="sign-header">
+
+    <div class="header-cont">
+
+        <div class="logo">
+            <div>
+                <a href="">
+                    <img src="{{ STATIC_URL }}img/logo.png" alt="">
+                </a>
+            </div>
+        </div>
+        <!-- End Logo -->
+
+        <div class="sign-up-btn">
+            <a href="/register/">Sign Up</a>
+        </div>
+        <!-- End Log Setting -->
+
+        <div class="country">
+            <div class="lang-icon"><a href="#"><i class="icon-globe2"></i></a>
+            </div>
+            <div class="lang-place"><a href="#">Kyrgyzstan</a>
+            </div>
+        </div>
+
+    </div>
+    <!-- End Header Content -->
+
+</div>
+<!-- End Header -->
+
+<div class="container-wrapper">
+
+    <div class="login">
+
+        <div class="login-cont">
+            <form action="/login/" id="login_form" method="post">
+                {% csrf_token %}
+                <div class="facebook">
+                    <p><a href="/fb_login/">Sign in with Facebook</a>
+                    </p>
+
+                </div>
+
+                <div class="invalid">
+                    {% if login_error %}
+                        <p>{{ login_error }}</p>
+                    {% endif %}
+                </div>
+
+                {% if login_success %}
+                    <div class="success">
+                        {{ login_success }}
+                    </div>
+                {% endif %}
+
+                <div class="login-header">
+                    <p>Sign in</p>
+                </div>
+
+                <div class="login-form clearfix">
+
+                    <div class="log-row clearfix">
+
+                        <div class="log-title">
+                            <label for="email">Email address</label>
+                        </div>
+
+                        <div class="login-input">
+                            <input type="email" id="email" name="email" placeholder="example@example.com"/>
+                        </div>
+
+                    </div>
+                    <!-- End Log Row -->
+
+                    <div class="log-row clearfix">
+
+                        <div class="log-title">
+                            <label for="password">Password</label>
+                        </div>
+
+                        <div class="login-input">
+                            <input type="password" name="password" placeholder="password" id="password"/>
+                        </div>
+
+                    </div>
+                    <!-- End Log Row -->
+
+                </div>
+                <!-- End Login Form -->
+
+                <div class="remember clearfix">
+                    <input type="checkbox" id="remember"/>
+                    <label for="remember">Remember me</label>
+                </div>
+
+                <div class="log-btn">
+                    <button type="submit">Sign in</button>
+                </div>
+
+                <div class="frgt">
+                    <p><a href="#">Forget your password?</a>
+                    </p>
+                </div>
+
+                <div class="privacy">
+                    <p>By continuing, you're confirming that you've read and agree to our <a href="#"> Terms and
+                        Conditions</a>, <a href="#"> Privacy Policy</a> and <a href="#"> Cookie Policy</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+        <!-- End Login cont-->
+
+    </div>
+    <!-- End Login -->
+
+</div>
+<!-- End Container Wrapper -->
+
+</body>
+
+</html>

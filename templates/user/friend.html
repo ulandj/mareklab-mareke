@@ -1,0 +1,226 @@
+{% extends 'base/base.html' %}
+{% load friend_request %}
+
+
+{% block js_script %}
+    <script>
+        $(document).ready(function () {
+            $('.confirm').click(function () {
+                var confirm_container = $(this).parent('div').parent('div');
+                var user_id = $(this).attr('user');
+
+                $(this).parent('div').hide();
+                confirm_container.find('.ajax_load').show();
+                $.ajax({
+                    url: "/confirm_friend_request/",
+                    type: "POST",
+                    data: {'user': user_id, 'csrfmiddlewaretoken': '{{csrf_token}}'},
+                    success: function (data, textStatus, jqXHR) {
+                        if (data.success) {
+                            confirm_container.find('.ajax_load').hide();
+                            confirm_container.find('.snd-msg').html('<span style="color:green">You are friend!</span>');
+                            confirm_container.find('.snd-msg').show();
+
+                            if ($('#header_friend_requests').find('p')) {
+                                var friend_request_count = $('#header_friend_requests').find('p').html();
+                                if (!isNaN(parseInt(friend_request_count))) {
+                                    if (friend_request_count > 0) {
+                                        friend_request_count -= 1;
+                                        if (friend_request_count <= 0) {
+                                            $('#header_friend_requests').find('p').hide();
+                                        } else {
+                                            $('#header_friend_requests').find('p').html(friend_request_count);
+                                        }
+                                    } else {
+                                        $('#header_friend_requests').find('p').hide();
+                                    }
+                                }
+                            }
+
+                            if ($('.frd-req').find('span')) {
+                                var friend_request_count = $('.frd-req').find('span').html();
+                                if (!isNaN(parseInt(friend_request_count))) {
+                                    if (friend_request_count > 0) {
+                                        friend_request_count -= 1;
+                                        $('.frd-req').find('span').html(friend_request_count);
+                                    }
+                                }
+                            }
+                        } else {
+                            confirm_container.find('.snd-msg').show();
+                            confirm_container.find('.ajax_load').hide();
+                            showErrorToast(data.message);
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        confirm_container.find('.snd-msg').show();
+                        confirm_container.find('.ajax_load').hide();
+                        showErrorToast('Error when sending data!');
+                    }
+                });
+            });
+
+
+            $('.delete_request').click(function () {
+                var confirm_container = $(this).parent('div').parent('div');
+                var user_id = $(this).attr('user');
+
+                $(this).parent('div').hide();
+                confirm_container.find('.ajax_load').show();
+                $.ajax({
+                    url: "/cancel_friend_request/",
+                    type: "POST",
+                    data: {'user': user_id, 'csrfmiddlewaretoken': '{{csrf_token}}'},
+                    success: function (data, textStatus, jqXHR) {
+                        if (data.success) {
+                            confirm_container.find('.ajax_load').hide();
+                            confirm_container.find('.snd-msg').html('<span style="color:green">You rejected friendship!</span>');
+                            confirm_container.find('.snd-msg').show();
+
+                            if ($('#header_friend_requests').find('p')) {
+                                var friend_request_count = $('#header_friend_requests').find('p').html();
+                                if (!isNaN(parseInt(friend_request_count))) {
+                                    if (friend_request_count > 0) {
+                                        friend_request_count -= 1;
+                                        if (friend_request_count <= 0) {
+                                            $('#header_friend_requests').find('p').hide();
+                                        } else {
+                                            $('#header_friend_requests').find('p').html(friend_request_count);
+                                        }
+                                    } else {
+                                        $('#header_friend_requests').find('p').hide();
+                                    }
+                                }
+                            }
+
+                            if ($('.frd-req').find('span')) {
+                                var friend_request_count = $('.frd-req').find('span').html();
+                                if (!isNaN(parseInt(friend_request_count))) {
+                                    if (friend_request_count > 0) {
+                                        friend_request_count -= 1;
+                                        $('.frd-req').find('span').html(friend_request_count);
+                                    }
+                                }
+                            }
+                        } else {
+                            confirm_container.find('.snd-msg').show();
+                            confirm_container.find('.ajax_load').hide();
+                            showErrorToast(data.message);
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        confirm_container.find('.snd-msg').show();
+                        confirm_container.find('.ajax_load').hide();
+                        showErrorToast('Error when sending data!');
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
+
+
+{% block content %}
+    <div class="mrk-wrapper">
+
+        <div class="mrk-content">
+
+            <div class="mrk-header clearfix">
+
+                <div class="mrk-friend">
+                    <div class="mrk-friend-title">
+                        <a href="/friends/">
+                            <p class="icon-friend"><i class="icon-users32"></i></p>
+
+                            <p class="icon-friend-title">Friends</p>
+                        </a>
+                    </div>
+                </div>
+                <!-- End Mrk Title -->
+
+                <ul class="mrk-friend-opt">
+
+                    <li class="frd-req">
+                        <a href="/friend_requests/">
+                            <p>Friend Request </p>
+                            <span>{{ user.id|friend_request_count }}</span>
+                        </a>
+                    </li>
+
+                    <li class="frd-find">
+                        <a href="#"><p><i class="icon-user-add"></i> Find Friends </p></a>
+                    </li>
+
+                    <li class="frd-pmyk">
+                        <a href="#">
+                            <p>People You May Know </p>
+                        </a>
+                    </li>
+
+                    <li class="mrk-search">
+                        <input type="text" placeholder="Search by name..."/>
+                        <button><i class="icon-search2"></i></button>
+                    </li>
+
+                </ul>
+                <!-- End mrk Search option -->
+
+            </div>
+            <!-- End Mrk Header -->
+
+            <div class="mrk-main clearfix">
+
+                <div class="mrk-list clearfix">
+
+                    {% for request in friends %}
+                        <div class="frnd-row">
+
+                            <div class="frnd-avatar">
+                                <img src="/static/img/jeniffer.png" alt=""/>
+                            </div>
+
+                            <div class="frnd-info">
+
+                                <div class="frd-name">
+                                    <p><a href="#">{{ request.name }}</a></p>
+                                </div>
+
+                                <div class="mutual">
+                                    <p><a href="#">{{ request.mutual_friend_count }} Mutual friends</a></p>
+                                </div>
+
+                                <div class="frd-act">
+
+                                    <div class="snd-msg">
+                                        {% if request.type == 'friends' %}
+                                            <button>Send Message</button>
+                                        {% else %}
+                                            <button class="confirm" user="{{ request.id }}">Confirm</button>
+                                            <button class="delete_request" user="{{ request.id }}">Delete Request
+                                            </button>
+                                        {% endif %}
+                                    </div>
+
+                                    <div style="display: none;" class="ajax_load"></div>
+                                </div>
+                            </div>
+                            <!-- End Frnd Info -->
+
+                            <div class="frnd-remove">
+                                <span><a href="#"><i class="icon-cross"></i></a></span>
+                            </div>
+
+                        </div>
+                        <!-- End Friend Row -->
+                    {% endfor %}
+
+                </div>
+                <!-- End Mrk List -->
+            </div>
+            <!-- End Mrk Main -->
+
+        </div>
+        <!-- Mrk Content -->
+
+    </div><!-- End Mrk Wrrapper -->
+{% endblock %}

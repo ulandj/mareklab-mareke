@@ -1,0 +1,333 @@
+{% load friend_request %}
+{% load page_list %}
+{% load user_filters %}
+<!DOCTYPE html>
+<html ng-app="ang_app">
+
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Index</title>
+    <link rel="stylesheet" href="/static/css/main-style.css">
+    <link rel="stylesheet" href="/static/css/reset.css">
+    <link rel="stylesheet" href="/static/css/icomoon.css">
+    <link rel="stylesheet" href="/static/css/notifIt.css">
+    <link rel="stylesheet" href="/static/css/video-js.css">
+    <link rel="stylesheet" href="/static/css/bootstrap-clockpicker.css">
+    <link rel="stylesheet" href="/static/css/standalone.css">
+    <link rel="stylesheet" href="/static/css/jquery-ui-1.10.4.custom.css">
+    <style>
+        .ajax_load {
+            background: url("/static/img/ajax-loader.gif") no-repeat;
+            width: 24px;
+            height: 24px;
+        }
+
+        .ajax_load_large {
+            background: url("/static/img/loading-large.gif") no-repeat;
+            width: 48px;
+            height: 48px;
+        }
+
+        .progress {
+            position: relative;
+            width: 419px;
+            border: 1px solid #EDEAEA;
+            padding: 0px;
+            border-radius: 0px;
+            float: right;
+        }
+
+        .bar {
+            background-color: #B4F5B4;
+            width: 0;
+            height: 20px;
+            border-radius: 0px;
+        }
+
+        .percent {
+            position: absolute;
+            display: inline-block;
+            top: 3px;
+            left: 48%;
+        }
+
+        .upload_file {
+        {#            background: #eee;#} border: 1px solid #EDEAEA;
+            display: block;
+            width: 338px;
+            float: right;
+            overflow: hidden;
+            padding-right: 81px;
+            margin-top: 5px;
+            margin-bottom: 5px;
+        {#            -webkit-border-radius: 3px;#} {#            -moz-border-radius: 3px;#} {#            border-radius: 3px;#} {#            position: relative;#}
+        }
+
+        .upload_file input {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .upload_value {
+            float: left;
+            width: 100%;
+        }
+
+        .upload_value div {
+            color: #333;
+            font: 14px/32px Arial, Helvetica, sans-serif;
+            padding: 0 6px;
+            z-index: 99999;
+        }
+
+        .upload_button {
+            background: url(https://lh3.googleusercontent.com/-wdrIwnjTGMw/Uzgc9ztYloI/AAAAAAAASUY/KTMQ0m_mzWs/button.png) 50% 50% no-repeat;
+            cursor: hand;
+            cursor: pointer;
+            float: left;
+            margin-right: -81px;
+            width: 81px;
+            height: 32px;
+        }
+
+        .menu_hidden {
+            display: none;
+        }
+    </style>
+
+    {% block css_style %}{% endblock %}
+
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <script type="text/javascript" src="/static/js/notifIt.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.autosize.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.form.min.js"></script>
+    <script type="text/javascript" src="/static/js/video.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap-clockpicker.js"></script>
+    <script type="text/javascript" src="/static/js/jquery-ui-1.10.4.custom.js"></script>
+    <script type="text/javascript" src="/static/js/sockjs-0.3.min.js"></script>
+
+    <script type="text/javascript">
+        window.user_socket_token = '{{ user.token }}';
+    </script>
+
+    <script type="text/javascript" src="/static/js/app.js"></script>
+
+    <script type="text/javascript" src="/static/js/angular.min.js"></script>
+    <script type="text/javascript" src="/static/js/angular-cookies.js"></script>
+    <script type="text/javascript" src="/static/js/ng-infinite-scroll.min.js"></script>
+    <script type="text/javascript" src="/static/js/angular-ui-router.min.js"></script>
+    <script type="text/javascript" src="/static/js/angular_app.js"></script>
+
+    {% block js_script %}{% endblock %}
+</head>
+
+<body>
+<audio id="applauseAudio">
+    <source src="/static/audio/applause.mp3" type="audio/mpeg">
+</audio>
+
+<audio id="chatAudio"><source src="/static/audio/notify.ogg" type="audio/ogg"></audio>
+
+<div class="header-wrapper">
+    <div class="header">
+
+        <div class="header-cont" ng-controller="SearchCtrl">
+
+            <div class="logo">
+                <div>
+                    <a href="/">
+                        <img src="/static/img/logo.png" alt="">
+                    </a>
+                </div>
+            </div>
+            <!-- End Logo -->
+
+            <div class="header-search" id="search_container"
+                 style="width:{% if user.first_name|length > 7 %}{{ 460|add:'-50' }}{% else %}{{ 460 }}{% endif %}px">
+                <input type="text" ng-model="searchText" ng-change="change(text)" id="search_text"
+                       name="search_text" placeholder="Search for people, places and things..."/>
+                <span><a href="#"><i class="icon-search2"></i></a></span>
+
+                <div class="suggest" id="search_popup" style="width:
+                        {% if user.first_name|length > 7 %}{{ 460|add:'-50' }}{% else %}{{ 460 }}{% endif %}px;">
+
+                    <ul>
+                        <li ng-repeat="entry in entries">
+                            <a href="/user/{[{ entry.id }]}">
+                                <img src="/static/img/martin.png"/>
+
+                                <p class="text">{[{ entry.full_name }]}</p>
+
+                                <p class="category">{[{ entry.info }]}</p>
+                            </a>
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
+            <!-- End header search-->
+
+            <div class="fl-right">
+
+                <div class="log-setting">
+                    <div class="log-set-nav" id="settings">
+                        <i class="icon-cog3"></i>
+                    </div>
+
+                    <ul class="log-nav menu_hidden" id="menu_settings">
+                        <li>
+                            <p><i class="icon-enter"></i> Change Log as</p>
+                            {% print_page_list user.id %}
+                        </li>
+                        <li><a href="#"><i class="icon-cogs"></i> Settings</a></li>
+                        <li><a href="/logout/"><i class="icon-logout"></i> Log Out</a></li>
+                        <li><a href="#"><i class="icon-help"></i> Help</a></li>
+                    </ul>
+                </div>
+                <!-- End Log Setting -->
+
+                <ul class="menu-nav clearfix">
+                    <li>
+                        <a href="/">
+                            <i class="icon-home3"></i>
+                        </a>
+                    </li>
+                    <li id="header_friend_requests">
+                        <a href="/friend_requests/">
+                            <i class="icon-users32"></i>
+
+                            {% with user.id|friend_request_count as friend_count %}
+                                {% if friend_count > 0 %}
+                                    <p>{{ friend_count }}</p>
+                                {% endif %}
+                            {% endwith %}
+
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="icon-bell2"></i>
+
+                            <p>8</p>
+                        </a>
+                    </li>
+                    <li id="header_total_message">
+                        <a href="/message/">
+                            <i class=" icon-comment"></i>
+
+                            {% with user.id|not_read_message_count as message_count %}
+                                {% if message_count > 0 %}
+                                    <p>{{ message_count }}</p>
+                                {% endif %}
+                            {% endwith %}
+                        </a>
+                    </li>
+                </ul>
+                <!-- |End Menu Nav-->
+
+                <div class="user-avatar">
+                    <a href="/user/{{ user.id }}">
+                        <img src="/static/img/martin.png" alt=""/>
+
+                        <p class="user-name">{{ user.first_name|slice:"20" }}</p>
+                    </a>
+                </div>
+                <!-- End User Avatar -->
+
+            </div>
+            <!-- End Fl-right -->
+
+
+        </div>
+        <!-- End Header Content -->
+
+    </div>
+    <!-- End Header -->
+</div>
+
+<div class="container-wrapper">
+
+    <div class="left-wrapper">
+
+        <ul class="menu-maareke">
+            <li><a href="#"><i class="icon-play"></i> Видео</a></li>
+            <li><a href="#"><i class="icon-camera"></i> Фотографии</a></li>
+            <li><a href="/create_maareke/"><i class="icon-flag2"></i> Стань Маарекешником</a></li>
+        </ul>
+        <!-- End Menu Maareke -->
+
+        <div class="maarekers-head">
+            <p><a href="#"><i class="icon-search2"></i> Maarekers</a></p>
+        </div>
+        <!-- End Menu Head-->
+
+        {% print_page_types %}
+
+    </div>
+    <!-- End Left wrapper-->
+
+    {% block content %}
+    {% endblock %}
+
+</div>
+<!-- End Container Wrapper -->
+
+<style>
+    /*
+Back to top button
+*/
+    #back-top {
+        position: fixed;
+        bottom: 30px;
+        right: 0;
+        margin-right: 10px;
+    }
+
+    #back-top a {
+        width: 60px;
+        display: block;
+        text-align: center;
+        text-transform: uppercase;
+        text-decoration: none;
+        color: #bbb;
+        /* background color transition */
+        -webkit-transition: 1s;
+        -moz-transition: 1s;
+        transition: 1s;
+    }
+
+    #back-top a:hover {
+        color: #000;
+    }
+
+    /* arrow icon (span tag) */
+    #back-top span {
+        width: 60px;
+        height: 60px;
+        display: block;
+        margin-bottom: 7px;
+        background: #ddd url(/static/img/up-arrow.png) no-repeat center center;
+
+        /* rounded corners */
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+
+        /* background color transition */
+        -webkit-transition: 1s;
+        -moz-transition: 1s;
+        transition: 1s;
+    }
+
+    #back-top a:hover span {
+        background-color: #777;
+    }
+</style>
+
+<div id="back-top">
+    <a href="#top"><span></span></a>
+</div>
+
+</body>
+
+</html>

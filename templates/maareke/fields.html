@@ -1,0 +1,10 @@
+{% for field in fields %}
+    {% if field.title == 'gender' %}
+        {% include 'maareke/fields/gender.html' %}
+
+    {% elif field.title == 'price' %}
+        {% include 'maareke/fields/price.html' %}
+
+    {% endif %}
+{% endfor %}
+

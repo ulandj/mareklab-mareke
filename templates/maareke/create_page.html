@@ -1,0 +1,175 @@
+{% extends 'base/base.html' %}
+
+{% block js_script %}
+    <script>
+        $(document).ready(function () {
+            $('#category').change(function () {
+                $.ajax({
+                    url: "/get_page_fields/",
+                    type: "GET",
+                    data: {'page_type': this.value, 'csrfmiddlewaretoken': '{{csrf_token}}'},
+                    success: function (data, textStatus, jqXHR) {
+                        $('#fields_container').html(data);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        showErrorToast('Error when connecting to server!');
+                    }
+                });
+            });
+
+
+            $('#create_page_form').ajaxForm({
+                // dataType identifies the expected content type of the server response
+                dataType: 'json',
+                clearForm: true,
+                uploadProgress: function (event, position, total, percentComplete) {
+                    $('#create_page_form').find('.crt-button').hide();
+                    $('#create_page_form').find('.ajax_load').show();
+                },
+
+                // success identifies the function to invoke when the server response
+                // has been received
+                success: function (data) {
+                    if (data.success) {
+                        var html = '<a href="/page_login/' +
+                                    data.data.id + '"><i class="icon-star"></i> ' +
+                                    data.data.title + '</a>';
+
+                        $('#menu_settings').children().first().append(html);
+                        showSuccessToast(data.message);
+                    } else {
+                        showErrorToast(data.message)
+                    }
+                },
+
+                complete: function (xhr) {
+                    $('#create_page_form').find('.crt-button').show();
+                    $('#create_page_form').find('.ajax_load').hide();
+                }
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+
+    <div class="maareke-page">
+
+        <div class="crt-mrk-page">
+
+            <div class="crt-mrk-head clearfix">
+                <p class="crt-title"><i class="icon-flag2"></i>Create Page</p>
+
+                <p class="crt-des">Be Maarekers to build a closer relationship with your audience and customers</p>
+            </div>
+            <!-- End Crt Mrk Head-->
+
+            <div class="crt-mrk-cont clearfix">
+
+                <form id="create_page_form" action="/create_page/" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="crt-row" ng-controller="PageTypeSelectCtrl">
+
+                        <p>Category</p>
+                        <select name="page_type" id="category">
+                            <option value="0">Choose Category</option>
+                            {% for page_type in page_types %}
+                                <option value="{{ page_type.id }}">{{ page_type.title }}</option>
+                            {% endfor %}
+                        </select>
+
+                    </div>
+                    <!-- End crt-row -->
+                    <div class="crt-row">
+                        <p>Page title</p>
+                        <input type="text" name="title">
+                    </div>
+
+                    <div class="crt-row">
+                        <p>Select Country</p>
+                        <select name="country" id="country">
+                            <option value="1">Select Country</option>
+                        </select>
+                    </div>
+
+                    <div class="crt-row">
+                        <p>Select Region</p>
+                        <select name="region" id="region">
+                            <option value="3">Select Region</option>
+                        </select>
+                    </div>
+
+                    <div class="crt-row">
+                        <p>Detailed Adress</p>
+                        <textarea name="address"></textarea>
+                    </div>
+
+                    <div class="crt-row">
+                        <p>Description</p>
+                        <textarea name="description"></textarea>
+                    </div>
+
+                    <div class="crt-row crt-phone clearfix">
+                        <p>Phone Number</p>
+                        <input type="text" name="phone_number" placeholder="Phone Number"/>
+                    </div>
+
+                    <div class="crt-row crt-photo clearfix">
+                        <p>Set Profile Photo</p>
+
+                        <div class="crt-up-area ">
+
+                            <a href="#">
+                                <img src="/static/img/photo-upl-bg.png" alt=""/>
+
+                                <div class="crt-up-cont">
+                                    <div class="icon-img">
+                                        <i class="icon-camera"></i>
+                                    </div>
+                                    <div class="photo-desc">
+                                        Click to upload image
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="crt-row crt-cover-photo clearfix">
+                        <p>Set Cover Photo</p>
+
+                        <div class="crt-up-area ">
+
+                            <a href="#">
+                                <img src="/static/img/photo-upl-bg.png" alt=""/>
+
+                                <div class="crt-up-cont">
+                                    <div class="icon-img">
+                                        <i class="icon-camera"></i>
+                                    </div>
+                                    <div class="photo-desc">
+                                        Click to upload image
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+
+                    <div id="fields_container"></div>
+
+
+                    <input type="submit" class="crt-button" value="Create Page">
+
+                    <div style="display: none;" class="ajax_load"></div>
+                </form>
+            </div>
+            <!-- End Crt Mrk Cont -->
+
+        </div>
+        <!-- End Crt Mrk Page -->
+
+    </div>
+    <!-- End mrkders -->
+
+
+{% endblock %}

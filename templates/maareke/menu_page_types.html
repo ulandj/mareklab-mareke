@@ -1,0 +1,5 @@
+<ul class="maarekers">
+    {% for page_type in page_types %}
+        <li><a href="/get_page_list/{{ page_type.id }}"><i class=""></i> {{ page_type.title }}</a></li>
+    {% endfor %}
+</ul>
